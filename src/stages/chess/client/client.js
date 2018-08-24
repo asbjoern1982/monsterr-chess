@@ -15,6 +15,36 @@ import html from './client.html'
 // css is immediately applied on import.
 import './client.css'
 
+function drawBoard (canvas, board) {
+  console.log('drawing!')
+  canvas.clear()
+  canvas.backgroundColor = 'grey'
+
+  let ts = 50 // tile size
+  for (let x = 0; x < 8; x++) {
+    for (let y = 0; y < 8; y++) {
+      let tile = new fabric.Rect({
+        width: ts,
+        height: ts,
+        fill: (x % 2 + y % 2 === 1) ? 'black' : 'white',
+        left: x * ts,
+        top: y * ts,
+        selectable: false
+      })
+      canvas.add(tile)
+      if (board[y][x] !== '  ') {
+        let piece = new fabric.Text(board[y][x], {
+          stroke: 'black',
+          fill: 'white',
+          left: x * ts,
+          top: y * ts
+        })
+        canvas.add(piece)
+      }
+    }
+  }
+}
+
 // Export the complete stage as the default export
 export default {
   // Remember to include your html in stage
@@ -34,29 +64,25 @@ export default {
 
   // Optionally define a setup method that is run before stage begins
   setup: (client) => {
-    // You can prepare the canvas...
-    client.getCanvas().add(...['green', 'red', 'yello'].map(fill => new fabric.Triangle({
-      width: 50, height: 50, fill, left: Math.random() * 200, top: Math.random() * 500
-    })))
 
-    // and access html...
-    // Here we listen for button clicks.
-    $('#stage1-button').mouseup(e => {
-      e.preventDefault() // Stop button from default behaviour (You almost always want to do this).
-      $('#stage1-title').html($('#stage1-input').val()) // Set title's content to value of input.
-    })
-  },
+    // TODO ask the server for the board
+    let board = [
+      // a     b     c     d     e     f     g     h
+      ['br', 'bk', 'bb', 'bq', 'bk', 'bb', 'bk', 'br'], // 8
+      ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'], // 7
+      ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 6
+      ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 5
+      ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 4
+      ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 3
+      ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'], // 1
+      ['wr', 'wk', 'wb', 'wq', 'wk', 'wb', 'wk', 'wr'] //  2
+    ]
 
-  // Optionally define a teardown method that is run when stage finishes
-  teardown (client) {
-    $('#stage1-button').off() // Remove all event handlers from button
+    drawBoard(client.getCanvas(), board)
   },
 
   // Configure options
   options: {
-    // You can set duration if you want the stage to
-    // be timed on the client.
-    duration: 30000,
     // You can set how much space you want the html
     // to take up. 0 = none. 1 = all.
     htmlContainerHeight: 0.3
