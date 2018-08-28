@@ -15,35 +15,8 @@ import html from './client.html'
 // css is immediately applied on import.
 import './client.css'
 
-function drawBoard (canvas, board) {
-  console.log('drawing!')
-  canvas.clear()
-  canvas.backgroundColor = 'grey'
-
-  let ts = 50 // tile size
-  for (let x = 0; x < 8; x++) {
-    for (let y = 0; y < 8; y++) {
-      let tile = new fabric.Rect({
-        width: ts,
-        height: ts,
-        fill: (x % 2 + y % 2 === 1) ? 'black' : 'white',
-        left: x * ts,
-        top: y * ts,
-        selectable: false
-      })
-      canvas.add(tile)
-      if (board[y][x] !== '  ') {
-        let piece = new fabric.Text(board[y][x], {
-          stroke: 'black',
-          fill: 'white',
-          left: x * ts,
-          top: y * ts
-        })
-        canvas.add(piece)
-      }
-    }
-  }
-}
+import {view} from './view'
+let ts = view.getTileSize() // tile size
 
 // Export the complete stage as the default export
 export default {
@@ -60,25 +33,58 @@ export default {
   },
 
   // Optionally define events
-  events: {},
+  events: {
+    'board': (client, payload) => {
+      view.drawBoard(client, payload)
+    },
+    'gameover': (client, payload) => {
+      let canvas = client.getCanvas()
+      let message = new fabric.Text(payload, {
+        left: 70,
+        top: 200,
+        fontSize: 40
+      })
+      canvas.add(message)
+      canvas.getObjects().forEach((object) => { object.selectable = false })
+      $('#button-conseed').prop('disabled', true)
+    }
+  },
 
   // Optionally define a setup method that is run before stage begins
   setup: (client) => {
+    // ask the server for the board state
+    // client.sendCommand('board')
+    // when the player starts dragging an item, save the position for later
+    let canvas = client.getCanvas()
 
-    // TODO ask the server for the board
-    let board = [
-      // a     b     c     d     e     f     g     h
-      ['br', 'bk', 'bb', 'bq', 'bk', 'bb', 'bk', 'br'], // 8
-      ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'], // 7
-      ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 6
-      ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 5
-      ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 4
-      ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 3
-      ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'], // 1
-      ['wr', 'wk', 'wb', 'wq', 'wk', 'wb', 'wk', 'wr'] //  2
-    ]
+    let selectedPieceX
+    let selectedPieceY
+    canvas.on('mouse:down', (event) => {
+      let piece = event.target
+      selectedPieceX = piece.left
+      selectedPieceY = piece.top
+    })
 
-    drawBoard(client.getCanvas(), board)
+    // when the player have moved a piece, send the move to the server
+    canvas.on('object:modified', (event) => {
+      let name = view.toText(event.target.text) // translate from unicode char to text
+      let oldX = Math.floor(selectedPieceX / ts)
+      let oldY = Math.floor(selectedPieceY / ts)
+      let newX = Math.floor(event.e.clientX / ts)
+      let newY = Math.floor(event.e.clientY / ts)
+      let move = {
+        name: name,
+        from: {x: oldX, y: oldY},
+        to: {x: newX, y: newY}
+      }
+      client.send('move', move)
+    })
+
+    // setup the consede button
+    $('#button-conseed').mouseup(e => {
+      e.preventDefault()
+      client.sendCommand('consede')
+    })
   },
 
   // Configure options

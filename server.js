@@ -1,20 +1,27 @@
-import createServer, { Network } from 'monsterr'
-import stage1 from './src/stages/stage1/server'
+import createServer, { Network, Events } from 'monsterr'
 import chessStage from './src/stages/chess/server/server'
 
-const stages = [stage1, chessStage]
+const stages = [chessStage]
+let playerCount = 0
 
-let events = {}
+let events = {
+  [Events.CLIENT_CONNECTED] (server, clientId) {
+    playerCount++
+    if (playerCount >= 2) {
+      server.start()
+    }
+  }
+}
 let commands = {}
 
 const monsterr = createServer({
-  network: Network.pairs(8),
+  network: Network.pairs(2),
   events,
   commands,
   stages,
   options: {
-    clientPassword: undefined,  // can specify client password
-    adminPassword: 'sEcr3t'     // and admin password
+    clientPassword: undefined, // can specify client password
+    adminPassword: 'sEcr3t' // and admin password
   }
 })
 

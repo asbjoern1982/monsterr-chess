@@ -12,7 +12,11 @@ let options = {
 }
 
 let events = {}
-let commands = {}
+let commands = {
+  'board': (admin, payload) => {
+    console.log(payload)
+  }
+}
 
 const admin = createClient({
   events,
