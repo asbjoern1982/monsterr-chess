@@ -17,6 +17,7 @@ import './client.css'
 
 import {view} from './view'
 let ts = view.getTileSize() // tile size
+let myColor = 'none'
 
 // Export the complete stage as the default export
 export default {
@@ -34,12 +35,12 @@ export default {
 
   // Optionally define events
   events: {
-    'board': (client, payload) => {
-      view.drawBoard(client, payload)
+    'board': (client, board) => {
+      view.drawBoard(client, myColor, board)
     },
-    'gameover': (client, payload) => {
+    'gameover': (client, winner) => {
       let canvas = client.getCanvas()
-      let message = new fabric.Text(payload, {
+      let message = new fabric.Text(winner, {
         left: 70,
         top: 200,
         fontSize: 40
@@ -47,6 +48,13 @@ export default {
       canvas.add(message)
       canvas.getObjects().forEach((object) => { object.selectable = false })
       $('#button-conseed').prop('disabled', true)
+    },
+    'color': (client, color) => {
+      myColor = color
+      client.getChat().append('You are ' + color)
+    },
+    'move': (client, move) => {
+      client.getChat().append(move)
     }
   },
 
@@ -57,6 +65,7 @@ export default {
     // when the player starts dragging an item, save the position for later
     let canvas = client.getCanvas()
 
+    // when the player starts dragging a shape on the canvas we need the startingposition
     let selectedPieceX
     let selectedPieceY
     canvas.on('mouse:down', (event) => {
@@ -68,14 +77,16 @@ export default {
     // when the player have moved a piece, send the move to the server
     canvas.on('object:modified', (event) => {
       let name = view.toText(event.target.text) // translate from unicode char to text
-      let oldX = Math.floor(selectedPieceX / ts)
-      let oldY = Math.floor(selectedPieceY / ts)
-      let newX = Math.floor(event.e.clientX / ts)
-      let newY = Math.floor(event.e.clientY / ts)
+      let oldp = view.t2p(myColor, selectedPieceX, selectedPieceY)
+      let newp = view.t2p(myColor, event.e.clientX, event.e.clientY)
+      // let oldX = Math.floor(selectedPieceX / ts)
+      // let oldY = Math.floor(selectedPieceY / ts)
+      // let newX = Math.floor(event.e.clientX / ts)
+      // let newY = Math.floor(event.e.clientY / ts)
       let move = {
         name: name,
-        from: {x: oldX, y: oldY},
-        to: {x: newX, y: newY}
+        from: oldp,
+        to: newp
       }
       client.send('move', move)
     })
@@ -85,12 +96,15 @@ export default {
       e.preventDefault()
       client.sendCommand('consede')
     })
+
+    // tell the server that the stage is loaded and we can start
+    client.send('clientReady')
   },
 
   // Configure options
   options: {
     // You can set how much space you want the html
     // to take up. 0 = none. 1 = all.
-    htmlContainerHeight: 0.3
+    htmlContainerHeight: 0.1
   }
 }

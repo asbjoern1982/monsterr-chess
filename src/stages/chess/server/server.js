@@ -8,7 +8,9 @@
  */
 
 import {board} from '../model/board'
+import {logger} from './logger'
 let clients = []
+let readyCount = 0
 
 // Export stage as the default export
 export default {
@@ -24,25 +26,54 @@ export default {
         server.send('gameover', 'black consided').toAll()
       }
       console.log(clientId + ' conseded')
+      console.log(logger.exportToString())
     }
   },
 
   // Optionally define events
   events: {
+    // this is a hack as it relys on the clients latency
+    // plus the changing of stage taking longer that then
+    // server changing stage, if the server is slower a
+    // ready-message might be lost. FIXME
+    'clientReady': (server, clientId) => {
+      readyCount++
+      if (readyCount === clients.length) {
+        // randomize color and tell each client what color their are
+        if (Math.random() < 0.5) {
+          let tempClientId = clients[0]
+          clients[0] = clients[1]
+          clients[1] = tempClientId
+        }
+        server.send('color', 'white').toClient(clients[0])
+        server.send('color', 'black').toClient(clients[1])
+
+        // inform the clients that the game is ready and send the board
+        server.send('board', board.getBoard()).toAll()
+      }
+    },
     'move': (server, clientId, payload) => {
-      let succes = board.move(
+      let move = board.move(
         (clients[0] === clientId) ? 'w' : 'b',
         payload.from,
         payload.to
       )
       server.send('board', board.getBoard()).toAll()
 
-      if (succes) {
+      if (move) {
+        // log the move
+        logger.log(move) // TODO save to a log
+        console.log(move)
+        let message = ((clients[0] === clientId) ? 'white' : 'black') + ': ' + move
+        server.send('move', message).toAll()
+
+        // check if there is a winner
         let winner = board.winner()
         if (winner) {
           let winnertext = 'winner is ' + ((winner === 'w') ? 'white' : 'black')
           console.log('gameover: ' + winnertext)
           server.send('gameover', winnertext).toAll()
+          console.log(logger.exportToString())
         }
       }
     }
@@ -57,12 +88,6 @@ export default {
       console.log('not enough players!')
       // TODO revert the state
     }
-
-    // FIXME wait
-    setTimeout(() => {
-      server.send('board', board.getBoard()).toAll()
-      server.send('board', board.getBoard()).toAdmin()
-    }, 1000)
   },
 
   // Optionally define a teardown method that is run when stage finishes

@@ -1,16 +1,26 @@
 function createBoard () {
   let board = [
     // a     b     c     d     e     f     g     h
-    ['br', 'bh', 'bb', 'bq', 'bk', 'bb', 'bh', 'br'], // 8
+    ['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'], // 8
     ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'], // 7
     ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 6
     ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 5
     ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 4
     ['  ', '  ', '  ', '  ', '  ', '  ', '  ', '  '], // 3
     ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'], // 2
-    ['wr', 'wh', 'wb', 'wq', 'wk', 'wb', 'wh', 'wr'] //  1
+    ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr'] //  1
   ]
   let count = 0
+  let letters = {
+    0: 'a',
+    1: 'b',
+    2: 'c',
+    3: 'd',
+    4: 'e',
+    5: 'f',
+    6: 'g',
+    7: 'h'
+  }
 
   function getBoard () {
     return board
@@ -38,7 +48,7 @@ function createBoard () {
           if (from.x === to.x || from.y === to.y) {
             legal = true
           }
-        } else if (piece === 'h') { // knight (horse)
+        } else if (piece === 'n') { // knight
           if (((from.x - to.x === 2 || from.x - to.x === -2) &&
               (from.y - to.y === 1 || from.y - to.y === -1)) ||
               ((from.x - to.x === 1 || from.x - to.x === -1) &&
@@ -69,12 +79,17 @@ function createBoard () {
           board[to.y][to.x] = board[from.y][from.x]
           board[from.y][from.x] = '  '
           count++
-          return true
+          // translate the move into long algebraic chess notation
+          let move = (piece !== 'p') ? piece.toUpperCase() : ''
+          move +=
+            letters[from.x] + (8 - from.y) + '-' +
+            letters[to.x] + (8 - to.y)
+          return move
         }
       }
     }
     // TODO log illigal moves as well
-    return false
+    return undefined
   }
 
   function winner () {
