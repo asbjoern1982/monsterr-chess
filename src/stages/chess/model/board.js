@@ -11,7 +11,7 @@ function createBoard () {
     ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr'] //  1
   ]
   let count = 0
-  let letters = {
+  let letters = { // for writing the move in correct notation
     0: 'a',
     1: 'b',
     2: 'c',
@@ -35,18 +35,57 @@ function createBoard () {
         let piece = board[from.y][from.x].charAt(1)
 
         if (piece === 'p') { // pawn
-          if (from.x === to.x) {
-            if (color === 'w' && from.y - to.y > 0 && from.y - to.y <= 2) {
-              legal = true
+          // normal movement without attack
+          if (from.x === to.x && board[to.y][from.x] === '  ') {
+            if (color === 'w') {
+              // special case, first move for white pawn wants to move 2 forward
+              if (from.y === 6 && to.y === 4) {
+                if (board[5][from.x] === '  ' && board[4][from.x]) {
+                  legal = true
+                }
+              }
+              // normal movement
+              if (from.y - to.y === 1) {
+                legal = true
+              }
             } else {
-              if (color === 'b' && from.y - to.y < 0 && from.y - to.y >= -2) {
+              // special case, first move for black pawn wants to move 2 forward
+              if (from.y === 1 && to.y === 3) {
+                if (board[2][from.x] === '  ' && board[3][from.x]) {
+                  legal = true
+                }
+              }
+              // normal movement
+              if (from.y - to.y === -1) {
                 legal = true
               }
             }
           }
-        } else if (piece === 'r') { // rook
-          if (from.x === to.x || from.y === to.y) {
+          // check for valid attack white
+          if (color === 'w' && from.y - to.y === 1 && (from.x - to.x === 1 || from.x - to.x === -1) && board[to.y][to.x].charAt(0) === 'b') {
             legal = true
+          }
+          // check for valid attack black
+          if (color === 'b' && from.y - to.y === -1 && (from.x - to.x === 1 || from.x - to.x === -1) && board[to.y][to.x].charAt(0) === 'w') {
+            legal = true
+          }
+        } else if (piece === 'r') { // rook
+          if (from.x === to.x) {
+            let clearWay = true
+            for (let i = Math.min(from.y, to.y) + 1; i < Math.max(from.y, to.y); i++) {
+              if (board[i][from.x] !== '  ') {
+                clearWay = false
+              }
+            }
+            legal = clearWay
+          } else if (from.y === to.y) {
+            let clearWay = true
+            for (let i = Math.min(from.x, to.x) + 1; i < Math.max(from.x, to.x); i++) {
+              if (board[from.y][i] !== '  ') {
+                clearWay = false
+              }
+            }
+            legal = clearWay
           }
         } else if (piece === 'n') { // knight
           if (((from.x - to.x === 2 || from.x - to.x === -2) &&
@@ -56,15 +95,114 @@ function createBoard () {
             legal = true
           }
         } else if (piece === 'b') { // bishop
+          // is it a legal bishop move?
           if (((from.x - from.y) === (to.x - to.y)) ||
               ((from.x + from.y) === (to.x + to.y))) {
-            legal = true
+            // check wheter something is in the way, have to go in each direction
+            // positive x, positive y
+            if (from.x - to.x < 0 && from.y - to.y < 0) {
+              let clearWay = true
+              for (let i = 1; i < to.x - from.x; i++) {
+                if (board[from.y + i][from.x + i] !== '  ') {
+                  clearWay = false
+                }
+              }
+              if (clearWay) { legal = true }
+            }
+            // positive x, negative y
+            if (from.x - to.x < 0 && from.y - to.y > 0) {
+              let clearWay = true
+              for (let i = 1; i < to.x - from.x; i++) {
+                if (board[from.y - i][from.x + i] !== '  ') {
+                  clearWay = false
+                }
+              }
+              if (clearWay) { legal = true }
+            }
+            // negative x, positive y
+            if (from.x - to.x > 0 && from.y - to.y < 0) {
+              let clearWay = true
+              for (let i = 1; i < from.x - to.x; i++) {
+                if (board[from.y + i][from.x - i] !== '  ') {
+                  clearWay = false
+                }
+              }
+              if (clearWay) { legal = true }
+            }
+            // negative x, negative y
+            if (from.x - to.x > 0 && from.y - to.y > 0) {
+              let clearWay = true
+              for (let i = 1; i < from.x - to.x; i++) {
+                if (board[from.y - i][from.x - i] !== '  ') {
+                  clearWay = false
+                }
+              }
+              if (clearWay) { legal = true }
+            }
           }
         } else if (piece === 'q') { // queen
-          if ((from.x === to.x || from.y === to.y) ||
-              (((from.x - from.y) === (to.x - to.y)) ||
-              ((from.x + from.y) === (to.x + to.y)))) {
-            legal = true
+          // check if it is a valid rook-move
+          if (from.x === to.x) {
+            let clearWay = true
+            for (let i = Math.min(from.y, to.y) + 1; i < Math.max(from.y, to.y); i++) {
+              if (board[i][from.x] !== '  ') {
+                clearWay = false
+              }
+            }
+            legal = clearWay
+          } else if (from.y === to.y) {
+            let clearWay = true
+            for (let i = Math.min(from.x, to.x) + 1; i < Math.max(from.x, to.x); i++) {
+              if (board[from.y][i] !== '  ') {
+                clearWay = false
+              }
+            }
+            legal = clearWay
+          }
+          // is it a legal bishop move?
+          if (((from.x - from.y) === (to.x - to.y)) ||
+              ((from.x + from.y) === (to.x + to.y))) {
+            // check wheter something is in the way, have to go in each direction
+            // positive x, positive y
+            if (from.x - to.x < 0 && from.y - to.y < 0) {
+              let clearWay = true
+              for (let i = 1; i < to.x - from.x; i++) {
+                if (board[from.y + i][from.x + i] !== '  ') {
+                  clearWay = false
+                }
+              }
+              if (clearWay) { legal = true }
+            }
+            // positive x, negative y
+            if (from.x - to.x < 0 && from.y - to.y > 0) {
+              let clearWay = true
+              for (let i = 1; i < to.x - from.x; i++) {
+                if (board[from.y - i][from.x + i] !== '  ') {
+                  clearWay = false
+                }
+              }
+              if (clearWay) { legal = true }
+            }
+            // negative x, positive y
+            if (from.x - to.x > 0 && from.y - to.y < 0) {
+              let clearWay = true
+              for (let i = 1; i < from.x - to.x; i++) {
+                if (board[from.y + i][from.x - i] !== '  ') {
+                  clearWay = false
+                }
+              }
+              if (clearWay) { legal = true }
+            }
+            // negative x, negative y
+            if (from.x - to.x > 0 && from.y - to.y > 0) {
+              let clearWay = true
+              for (let i = 1; i < from.x - to.x; i++) {
+                if (board[from.y - i][from.x - i] !== '  ') {
+                  clearWay = false
+                }
+              }
+              if (clearWay) { legal = true }
+            }
           }
         } else if (piece === 'k') { // king
           if ((from.x - to.x) <= 1 && (from.x - to.x >= -1) &&
@@ -73,9 +211,8 @@ function createBoard () {
           }
         }
 
-        // make the move
         if (legal) {
-          // TODO save it to the log
+          // make the move
           board[to.y][to.x] = board[from.y][from.x]
           board[from.y][from.x] = '  '
           count++
@@ -88,7 +225,7 @@ function createBoard () {
         }
       }
     }
-    // TODO log illigal moves as well
+    // NOTE: it might be interesting to log the illigal moves and log them
     return undefined
   }
 
