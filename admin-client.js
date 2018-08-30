@@ -4,19 +4,34 @@ import createClient from 'monsterr'
 import html from './src/admin/client.html'
 import './src/admin/client.css'
 
+import {view} from './src/stages/chess/client/view'
+
 let options = {
   canvasBackgroundColor: 'red',
-  htmlContainerHeight: 0.5,
+  htmlContainerHeight: 0.23,
   // HTML is included in options for admin
   html
 }
 
-let events = {}
-let commands = {
-  'board': (admin, payload) => {
-    console.log(payload)
+let events = {
+  'board': (admin, board) => {
+    view.drawBoard(admin, 'white', board)
+    // console.log(payload)
+  },
+  'resCSV': (admin, csv) => {
+    let fileName = 'monsterr-chess_' + Date.now() + '.csv'
+
+    let url = window.URL.createObjectURL(new Blob([csv], {type: 'text/csv'}))
+    var a = document.createElement('a')
+    document.body.appendChild(a)
+    a.style = 'display: none'
+    a.href = url
+    a.download = fileName
+    a.click()
+    window.URL.revokeObjectURL(url)
   }
 }
+let commands = {}
 
 const admin = createClient({
   events,
@@ -37,4 +52,8 @@ $('#admin-button-next').mouseup(e => {
 $('#admin-button-reset').mouseup(e => {
   e.preventDefault()
   admin.sendCommand('reset')
+})
+$('#admin-button-csv').mouseup(e => {
+  e.preventDefault()
+  admin.sendCommand('reqCSV')
 })

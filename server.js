@@ -12,7 +12,8 @@ let events = {
     }
   }
 }
-let commands = {}
+let commands = {
+}
 
 const monsterr = createServer({
   network: Network.pairs(2),

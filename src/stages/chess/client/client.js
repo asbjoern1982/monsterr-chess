@@ -16,7 +16,6 @@ import html from './client.html'
 import './client.css'
 
 import {view} from './view'
-let ts = view.getTileSize() // tile size
 let myColor = 'none'
 
 // Export the complete stage as the default export
@@ -64,6 +63,7 @@ export default {
     // client.sendCommand('board')
     // when the player starts dragging an item, save the position for later
     let canvas = client.getCanvas()
+    canvas.selection = false
 
     // when the player starts dragging a shape on the canvas we need the startingposition
     let selectedPieceX

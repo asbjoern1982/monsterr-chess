@@ -9,6 +9,7 @@
 
 import {board} from '../model/board'
 import {logger} from './logger'
+import {Events} from 'monsterr'
 let clients = []
 let readyCount = 0
 
@@ -27,11 +28,19 @@ export default {
       }
       console.log(clientId + ' conseded')
       console.log(logger.exportToString())
+    },
+    'reqCSV': (server, clientId) => {
+      server.send('resCSV', logger.exportToCSV()).toAdmin()
     }
   },
 
   // Optionally define events
   events: {
+    [Events.CLIENT_RECONNECTED]: (server, clientId) => {
+      // TODO move client to chess stages
+      server.send('color', (clientId === clients[0] ? 'white' : 'black')).toClient(clientId)
+      server.send('board', board.getBoard()).toClient(clientId)
+    },
     // this is a hack as it relys on the clients latency
     // plus the changing of stage taking longer that then
     // server changing stage, if the server is slower a
@@ -49,7 +58,9 @@ export default {
         server.send('color', 'black').toClient(clients[1])
 
         // inform the clients that the game is ready and send the board
-        server.send('board', board.getBoard()).toAll()
+        let tempBoard = board.getBoard()
+        server.send('board', tempBoard).toAll()
+        server.send('board', tempBoard).toAdmin()
       }
     },
     'move': (server, clientId, payload) => {
@@ -58,7 +69,9 @@ export default {
         payload.from,
         payload.to
       )
-      server.send('board', board.getBoard()).toAll()
+      let tempBoard = board.getBoard()
+      server.send('board', tempBoard).toAll()
+      server.send('board', tempBoard).toAdmin()
 
       if (move) {
         // log the move

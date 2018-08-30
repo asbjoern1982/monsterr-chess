@@ -8,12 +8,30 @@
   behaviour.
 */
 
-#admin-button-start {
-  background-color: green;
+.container {
+  padding-top: 5px;
 }
-#admin-button-next {
-  background-color: blue;
+
+.btn {
+  padding: 12px;
 }
-#admin-button-reset {
-  background-color: red;
+
+#admin-button-csv {
+    background-color: DodgerBlue;
+}
+
+#admin-button-csv:hover {
+  background-color: RoyalBlue;
+}
+
+#latencygraphcontainer {
+  border: 1px solid lightgray;
+}
+
+#networkgraphcontainer {
+  border: 1px solid lightgray;
+}
+
+#networkgraph {
+  height: 250px;
 }
