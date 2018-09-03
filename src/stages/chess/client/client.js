@@ -17,6 +17,7 @@ import './client.css'
 
 import {view} from './view'
 let myColor = 'none'
+let cachedBoard
 
 // Export the complete stage as the default export
 export default {
@@ -35,7 +36,10 @@ export default {
   // Optionally define events
   events: {
     'board': (client, board) => {
-      view.drawBoard(client, myColor, board)
+      cachedBoard = board
+      let canvas = client.getCanvas()
+      let boardsize = Math.min(canvas.width, canvas.height)
+      view.drawBoard(canvas, myColor, board, boardsize)
     },
     'gameover': (client, winner) => {
       let canvas = client.getCanvas()
@@ -69,26 +73,39 @@ export default {
     let selectedPieceX
     let selectedPieceY
     canvas.on('mouse:down', (event) => {
-      let piece = event.target
-      selectedPieceX = piece.left
-      selectedPieceY = piece.top
+      selectedPieceX = event.e.clientX
+      selectedPieceY = event.e.clientY
     })
 
     // when the player have moved a piece, send the move to the server
     canvas.on('object:modified', (event) => {
+      console.log('selectedPieceX: ' + selectedPieceX)
+      console.log('selectedPieceY: ' + selectedPieceY)
+      console.log('event.e.clientX: ' + event.e.clientX)
+      console.log('event.e.clientY: ' + event.e.clientY)
       let name = view.toText(event.target.text) // translate from unicode char to text
       let oldp = view.t2p(myColor, selectedPieceX, selectedPieceY)
       let newp = view.t2p(myColor, event.e.clientX, event.e.clientY)
-      // let oldX = Math.floor(selectedPieceX / ts)
-      // let oldY = Math.floor(selectedPieceY / ts)
-      // let newX = Math.floor(event.e.clientX / ts)
-      // let newY = Math.floor(event.e.clientY / ts)
-      let move = {
-        name: name,
-        from: oldp,
-        to: newp
+      if (newp) { // check if it is within the board
+        let move = {
+          name: name,
+          from: oldp,
+          to: newp
+        }
+        client.send('move', move)
+      } else {
+        console.log('bad move, redraw')
+        let canvas = client.getCanvas()
+        let boardsize = Math.min(canvas.width, canvas.height)
+        view.drawBoard(canvas, myColor, cachedBoard, boardsize)
       }
-      client.send('move', move)
+    })
+
+    // check for resizing of canvas
+    $(window).resize('resize', () => {
+      let canvas = client.getCanvas()
+      let boardsize = Math.min(canvas.width, canvas.height)
+      view.drawBoard(canvas, myColor, cachedBoard, boardsize)
     })
 
     // setup the consede button

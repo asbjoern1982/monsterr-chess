@@ -18,6 +18,7 @@ export default {
   // Optionally define commands
   commands: {
     'board': (server, clientId) => {
+      console.log('client asked for the board')
       server.send('board', board.getBoard()).toClient(clientId)
     },
     'consede': (server, clientId) => {
@@ -31,15 +32,25 @@ export default {
     },
     'reqCSV': (server, clientId) => {
       server.send('resCSV', logger.exportToCSV()).toAdmin()
+    },
+    'redrawAdmin': (server, clientId) => {
+      console.log('admin asked for the board')
+      server.send('board', board.getBoard()).toAdmin()
     }
   },
 
   // Optionally define events
   events: {
     [Events.CLIENT_RECONNECTED]: (server, clientId) => {
-      // TODO move client to chess stages
-      server.send('color', (clientId === clients[0] ? 'white' : 'black')).toClient(clientId)
-      server.send('board', board.getBoard()).toClient(clientId)
+      // when a client reconnects, wait for it to rebuild the page and
+      // then send it the correct stage, color and boardstate
+      setTimeout(() => {
+        let stageNo = server.getCurrentStage().number
+        let color = clientId === clients[0] ? 'white' : 'black'
+        server.send(Events.START_STAGE, stageNo).toClient(clientId)
+        server.send('color', color).toClient(clientId)
+        server.send('board', board.getBoard()).toClient(clientId)
+      }, 1000)
     },
     // this is a hack as it relys on the clients latency
     // plus the changing of stage taking longer that then

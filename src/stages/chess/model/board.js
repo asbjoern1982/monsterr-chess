@@ -11,16 +11,17 @@ function createBoard () {
     ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr'] //  1
   ]
   let count = 0
-  let letters = { // for writing the move in correct notation
-    0: 'a',
-    1: 'b',
-    2: 'c',
-    3: 'd',
-    4: 'e',
-    5: 'f',
-    6: 'g',
-    7: 'h'
+  let letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] // for writing the move in correct notation
+
+  // if you move the a rook then the king can no longer castle with it
+  let allowedCastling = {
+    w: [true, true],
+    b: [true, true]
   }
+  let allowedEnPassentMoves = [
+    [false, false, false, false, false, false, false, false],
+    [false, false, false, false, false, false, false, false]
+  ]
 
   function getBoard () {
     return board
@@ -33,15 +34,25 @@ function createBoard () {
           (count % 2 === 1 && color === 'b')) {
         let legal = false
         let piece = board[from.y][from.x].charAt(1)
+        let tempEnPassentMove
 
-        if (piece === 'p') { // pawn
+        if (piece === 'p') { // pawn ------------------------------------------------------------
+          // en passent
+          if ((allowedEnPassentMoves[(color === 'b' ? 0 : 1)][to.x] && (from.x - to.x === 1 || from.x - to.x === -1)) &&
+              ((color === 'w' && from.y === 3) ||
+              (color === 'b' && from.y === 4))) {
+            board[from.y][to.x] = '  '
+            legal = true
+          }
+
           // normal movement without attack
           if (from.x === to.x && board[to.y][from.x] === '  ') {
             if (color === 'w') {
               // special case, first move for white pawn wants to move 2 forward
               if (from.y === 6 && to.y === 4) {
-                if (board[5][from.x] === '  ' && board[4][from.x]) {
+                if (board[5][from.x] === '  ' && board[4][from.x] === '  ') {
                   legal = true
+                  tempEnPassentMove = {color: color, x: to.x}
                 }
               }
               // normal movement
@@ -51,8 +62,9 @@ function createBoard () {
             } else {
               // special case, first move for black pawn wants to move 2 forward
               if (from.y === 1 && to.y === 3) {
-                if (board[2][from.x] === '  ' && board[3][from.x]) {
+                if (board[2][from.x] === '  ' && board[3][from.x] === '  ') {
                   legal = true
+                  tempEnPassentMove = {color: color, x: to.x}
                 }
               }
               // normal movement
@@ -69,7 +81,19 @@ function createBoard () {
           if (color === 'b' && from.y - to.y === -1 && (from.x - to.x === 1 || from.x - to.x === -1) && board[to.y][to.x].charAt(0) === 'w') {
             legal = true
           }
-        } else if (piece === 'r') { // rook
+
+          // clear enpessants and add any new ones
+          if (legal) {
+            allowedEnPassentMoves = [
+              [false, false, false, false, false, false, false, false],
+              [false, false, false, false, false, false, false, false]
+            ]
+            if (tempEnPassentMove) {
+              if (tempEnPassentMove.color === 'w') allowedEnPassentMoves[0][tempEnPassentMove.x] = true
+              else allowedEnPassentMoves[1][tempEnPassentMove.x] = true
+            }
+          }
+        } else if (piece === 'r') { // rook ------------------------------------------------------------
           if (from.x === to.x) {
             let clearWay = true
             for (let i = Math.min(from.y, to.y) + 1; i < Math.max(from.y, to.y); i++) {
@@ -87,14 +111,18 @@ function createBoard () {
             }
             legal = clearWay
           }
-        } else if (piece === 'n') { // knight
+          if (legal) { // if you move a rook you can no longer castle with that rook
+            if (from.x === 0) allowedCastling[color][0] = false
+            if (from.x === 7) allowedCastling[color][1] = false
+          }
+        } else if (piece === 'n') { // knight ------------------------------------------------------------
           if (((from.x - to.x === 2 || from.x - to.x === -2) &&
               (from.y - to.y === 1 || from.y - to.y === -1)) ||
               ((from.x - to.x === 1 || from.x - to.x === -1) &&
               (from.y - to.y === 2 || from.y - to.y === -2))) {
             legal = true
           }
-        } else if (piece === 'b') { // bishop
+        } else if (piece === 'b') { // bishop ------------------------------------------------------------
           // is it a legal bishop move?
           if (((from.x - from.y) === (to.x - to.y)) ||
               ((from.x + from.y) === (to.x + to.y))) {
@@ -140,7 +168,7 @@ function createBoard () {
               if (clearWay) { legal = true }
             }
           }
-        } else if (piece === 'q') { // queen
+        } else if (piece === 'q') { // queen ------------------------------------------------------------
           // check if it is a valid rook-move
           if (from.x === to.x) {
             let clearWay = true
@@ -204,11 +232,32 @@ function createBoard () {
               if (clearWay) { legal = true }
             }
           }
-        } else if (piece === 'k') { // king
+        } else if (piece === 'k') { // king ------------------------------------------------------------
+          // normal move
           if ((from.x - to.x) <= 1 && (from.x - to.x >= -1) &&
               (from.y - to.y) <= 1 && (from.y - to.y >= -1)) {
             legal = true
           }
+
+          if (color === 'w' && allowedCastling[color][0] && to.x === 2 && to.y === 7) {
+            board[7][0] = '  '
+            board[7][3] = 'wr'
+            legal = true
+          } else if (color === 'w' && allowedCastling[color][1] && to.x === 6 && to.y === 7) {
+            board[7][7] = '  '
+            board[7][5] = 'wr'
+            legal = true
+          } else if (color === 'b' && allowedCastling[color][0] && to.x === 2 && to.y === 0) {
+            board[0][0] = '  '
+            board[0][3] = 'br'
+            legal = true
+          } else if (color === 'b' && allowedCastling[color][1] && to.x === 6 && to.y === 0) {
+            board[0][7] = '  '
+            board[0][5] = 'br'
+            legal = true
+          }
+
+          if (legal) allowedCastling[color] = [false, false] // if you move the king, you can no longer castle
         }
 
         if (legal) {

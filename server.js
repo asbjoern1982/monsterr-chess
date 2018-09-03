@@ -7,13 +7,12 @@ let playerCount = 0
 let events = {
   [Events.CLIENT_CONNECTED] (server, clientId) {
     playerCount++
-    if (playerCount >= 2) {
+    if (playerCount === 2) {
       server.start()
     }
   }
 }
-let commands = {
-}
+let commands = {}
 
 const monsterr = createServer({
   network: Network.pairs(2),

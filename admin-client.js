@@ -15,8 +15,9 @@ let options = {
 
 let events = {
   'board': (admin, board) => {
-    view.drawBoard(admin, 'white', board)
-    // console.log(payload)
+    let canvas = admin.getCanvas()
+    let boardsize = Math.min(canvas.width, canvas.height)
+    view.drawBoard(canvas, 'white', board, boardsize)
   },
   'resCSV': (admin, csv) => {
     let fileName = 'monsterr-chess_' + Date.now() + '.csv'
@@ -41,17 +42,9 @@ const admin = createClient({
 })
 
 // Button event handlers (if you need more you should probably put them in a separate file and import it here)
-$('#admin-button-start').mouseup(e => {
-  e.preventDefault()
-  admin.sendCommand('start')
-})
-$('#admin-button-next').mouseup(e => {
-  e.preventDefault()
-  admin.sendCommand('next')
-})
 $('#admin-button-reset').mouseup(e => {
   e.preventDefault()
-  admin.sendCommand('reset')
+  admin.sendCommand('redrawAdmin')
 })
 $('#admin-button-csv').mouseup(e => {
   e.preventDefault()
