@@ -6,9 +6,11 @@ import './src/admin/client.css'
 
 import {view} from './src/stages/chess/client/view'
 
+import {LatencyModule} from './src/modules/LatencyModule'
+
 let options = {
   canvasBackgroundColor: 'red',
-  htmlContainerHeight: 0.23,
+  htmlContainerHeight: 0.4,
   // HTML is included in options for admin
   html
 }
@@ -32,6 +34,8 @@ let events = {
     window.URL.revokeObjectURL(url)
   }
 }
+LatencyModule.addAdminClientEvents(events)
+
 let commands = {}
 
 const admin = createClient({
@@ -50,3 +54,5 @@ $('#admin-button-csv').mouseup(e => {
   e.preventDefault()
   admin.sendCommand('reqCSV')
 })
+
+LatencyModule.setupClient(admin)

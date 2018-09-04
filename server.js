@@ -1,5 +1,6 @@
 import createServer, { Network, Events } from 'monsterr'
 import chessStage from './src/stages/chess/server/server'
+import {LatencyModule} from './src/modules/LatencyModule'
 
 const stages = [chessStage]
 let playerCount = 0
@@ -13,6 +14,8 @@ let events = {
   }
 }
 let commands = {}
+
+LatencyModule.addServerCommands(commands)
 
 const monsterr = createServer({
   network: Network.pairs(2),
