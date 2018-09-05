@@ -1,16 +1,14 @@
 /* globals $ */
 import createClient from 'monsterr'
-
 import html from './src/admin/client.html'
 import './src/admin/client.css'
-
 import {view} from './src/stages/chess/client/view'
-
 import {LatencyModule} from './src/modules/LatencyModule'
+import {NetworkModule} from './src/modules/NetworkModule'
 
 let options = {
   canvasBackgroundColor: 'red',
-  htmlContainerHeight: 0.4,
+  htmlContainerHeight: 0.5,
   // HTML is included in options for admin
   html
 }
@@ -35,7 +33,7 @@ let events = {
   }
 }
 LatencyModule.addAdminClientEvents(events)
-
+NetworkModule.addAdminClientEvents(events)
 let commands = {}
 
 const admin = createClient({
@@ -56,3 +54,4 @@ $('#admin-button-csv').mouseup(e => {
 })
 
 LatencyModule.setupClient(admin)
+NetworkModule.setupClient(admin)

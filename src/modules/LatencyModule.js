@@ -4,10 +4,10 @@ import Chart from 'chart.js'
 /* what to do to use this LatencyModule
  * 1) download the chart.js module for npm: npm install chart.js
  * 2) for /server.js add the following lines:
- *    a) in the top: import LatencyModule from 'modules/latencyModule'
+ *    a) in the top: import {LatencyModule} from './src/modules/LatencyModule'
  *    b) between commands is declared and before the server is created: LatencyModule.addServerCommands(commands)
  * 3) for /admin-client.js add the following lines
- *    a) in the top: import LatencyModule from 'modules/latencyModule'
+ *    a) in the top: import {LatencyModule} from './src/modules/latencyModule'
  *    b) between events is declared and before the server is created: LatencyModule.addAdminClientEvents(events)
  *    c) after the admin-client is created: LatencyModule.setupClient(admin)
  */
@@ -25,16 +25,17 @@ let createLatencyModule = () => {
     'rgb(0, 0, 255)',
     'rgb(255, 0, 255)'
   ]
-
   let chart
 
   let addHTML = (admin) => {
     // inject the html in the page
-    let htmlGraph = '<div class="col-sm" id="latencygraphcontainer"><div id="latencygraphtitle">Latency Graph</div><canvas id="latencygraph"></canvas></div>'
+    let htmlGraph = '<div class="col-sm" style="border: 1px solid lightgray; height: 300px; width: 300px;"><div id="latencygraphtitle">Latency Graph</div><canvas id="latencygraph"></canvas></div>'
     if ($('#graphs').length) {
+      console.log('LatencyModule: #graphes exsist! appending!')
       $('#graphs').append(htmlGraph)
     } else {
-      $('#admin').append('<div class="container"><div class="row" id="#graphs">' + htmlGraph + '</div></div>')
+      console.log('LatencyModule: #graphes does not exsist! creating it!')
+      $('#admin').append('<div class="container"><div class="row" id="graphs">' + htmlGraph + '</div></div>')
     }
   }
 
@@ -53,6 +54,7 @@ let createLatencyModule = () => {
         datasets: []
       },
       options: {
+        maintainAspectRatio: false,
         responsive: true,
         animation: {
           duration: 0, // faster animations
