@@ -1,4 +1,3 @@
-/* globals $ */
 import createClient from 'monsterr'
 import html from './src/admin/client.html'
 import './src/admin/client.css'

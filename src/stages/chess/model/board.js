@@ -1,5 +1,5 @@
 function createBoard () {
-  let board = [
+  let boardstate = [
     // a     b     c     d     e     f     g     h
     ['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'], // 8
     ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'], // 7
@@ -24,16 +24,16 @@ function createBoard () {
   ]
 
   function getBoard () {
-    return board
+    return boardstate
   }
 
   function move (color, from, to) {
-    if (board[from.y][from.x].charAt(0) === color &&
-        board[to.y][to.x].charAt(0) !== color) {
+    if (boardstate[from.y][from.x].charAt(0) === color &&
+        boardstate[to.y][to.x].charAt(0) !== color) {
       if ((count % 2 === 0 && color === 'w') ||
           (count % 2 === 1 && color === 'b')) {
         let legal = false
-        let piece = board[from.y][from.x].charAt(1)
+        let piece = boardstate[from.y][from.x].charAt(1)
         let tempEnPassentMove
 
         if (piece === 'p') { // pawn ------------------------------------------------------------
@@ -41,16 +41,16 @@ function createBoard () {
           if ((allowedEnPassentMoves[(color === 'b' ? 0 : 1)][to.x] && (from.x - to.x === 1 || from.x - to.x === -1)) &&
               ((color === 'w' && from.y === 3) ||
               (color === 'b' && from.y === 4))) {
-            board[from.y][to.x] = '  '
+            boardstate[from.y][to.x] = '  '
             legal = true
           }
 
           // normal movement without attack
-          if (from.x === to.x && board[to.y][from.x] === '  ') {
+          if (from.x === to.x && boardstate[to.y][from.x] === '  ') {
             if (color === 'w') {
               // special case, first move for white pawn wants to move 2 forward
               if (from.y === 6 && to.y === 4) {
-                if (board[5][from.x] === '  ' && board[4][from.x] === '  ') {
+                if (boardstate[5][from.x] === '  ' && boardstate[4][from.x] === '  ') {
                   legal = true
                   tempEnPassentMove = {color: color, x: to.x}
                 }
@@ -62,7 +62,7 @@ function createBoard () {
             } else {
               // special case, first move for black pawn wants to move 2 forward
               if (from.y === 1 && to.y === 3) {
-                if (board[2][from.x] === '  ' && board[3][from.x] === '  ') {
+                if (boardstate[2][from.x] === '  ' && boardstate[3][from.x] === '  ') {
                   legal = true
                   tempEnPassentMove = {color: color, x: to.x}
                 }
@@ -74,11 +74,11 @@ function createBoard () {
             }
           }
           // check for valid attack white
-          if (color === 'w' && from.y - to.y === 1 && (from.x - to.x === 1 || from.x - to.x === -1) && board[to.y][to.x].charAt(0) === 'b') {
+          if (color === 'w' && from.y - to.y === 1 && (from.x - to.x === 1 || from.x - to.x === -1) && boardstate[to.y][to.x].charAt(0) === 'b') {
             legal = true
           }
           // check for valid attack black
-          if (color === 'b' && from.y - to.y === -1 && (from.x - to.x === 1 || from.x - to.x === -1) && board[to.y][to.x].charAt(0) === 'w') {
+          if (color === 'b' && from.y - to.y === -1 && (from.x - to.x === 1 || from.x - to.x === -1) && boardstate[to.y][to.x].charAt(0) === 'w') {
             legal = true
           }
 
@@ -97,7 +97,7 @@ function createBoard () {
           if (from.x === to.x) {
             let clearWay = true
             for (let i = Math.min(from.y, to.y) + 1; i < Math.max(from.y, to.y); i++) {
-              if (board[i][from.x] !== '  ') {
+              if (boardstate[i][from.x] !== '  ') {
                 clearWay = false
               }
             }
@@ -105,7 +105,7 @@ function createBoard () {
           } else if (from.y === to.y) {
             let clearWay = true
             for (let i = Math.min(from.x, to.x) + 1; i < Math.max(from.x, to.x); i++) {
-              if (board[from.y][i] !== '  ') {
+              if (boardstate[from.y][i] !== '  ') {
                 clearWay = false
               }
             }
@@ -131,7 +131,7 @@ function createBoard () {
             if (from.x - to.x < 0 && from.y - to.y < 0) {
               let clearWay = true
               for (let i = 1; i < to.x - from.x; i++) {
-                if (board[from.y + i][from.x + i] !== '  ') {
+                if (boardstate[from.y + i][from.x + i] !== '  ') {
                   clearWay = false
                 }
               }
@@ -141,7 +141,7 @@ function createBoard () {
             if (from.x - to.x < 0 && from.y - to.y > 0) {
               let clearWay = true
               for (let i = 1; i < to.x - from.x; i++) {
-                if (board[from.y - i][from.x + i] !== '  ') {
+                if (boardstate[from.y - i][from.x + i] !== '  ') {
                   clearWay = false
                 }
               }
@@ -151,7 +151,7 @@ function createBoard () {
             if (from.x - to.x > 0 && from.y - to.y < 0) {
               let clearWay = true
               for (let i = 1; i < from.x - to.x; i++) {
-                if (board[from.y + i][from.x - i] !== '  ') {
+                if (boardstate[from.y + i][from.x - i] !== '  ') {
                   clearWay = false
                 }
               }
@@ -161,7 +161,7 @@ function createBoard () {
             if (from.x - to.x > 0 && from.y - to.y > 0) {
               let clearWay = true
               for (let i = 1; i < from.x - to.x; i++) {
-                if (board[from.y - i][from.x - i] !== '  ') {
+                if (boardstate[from.y - i][from.x - i] !== '  ') {
                   clearWay = false
                 }
               }
@@ -173,7 +173,7 @@ function createBoard () {
           if (from.x === to.x) {
             let clearWay = true
             for (let i = Math.min(from.y, to.y) + 1; i < Math.max(from.y, to.y); i++) {
-              if (board[i][from.x] !== '  ') {
+              if (boardstate[i][from.x] !== '  ') {
                 clearWay = false
               }
             }
@@ -181,7 +181,7 @@ function createBoard () {
           } else if (from.y === to.y) {
             let clearWay = true
             for (let i = Math.min(from.x, to.x) + 1; i < Math.max(from.x, to.x); i++) {
-              if (board[from.y][i] !== '  ') {
+              if (boardstate[from.y][i] !== '  ') {
                 clearWay = false
               }
             }
@@ -195,7 +195,7 @@ function createBoard () {
             if (from.x - to.x < 0 && from.y - to.y < 0) {
               let clearWay = true
               for (let i = 1; i < to.x - from.x; i++) {
-                if (board[from.y + i][from.x + i] !== '  ') {
+                if (boardstate[from.y + i][from.x + i] !== '  ') {
                   clearWay = false
                 }
               }
@@ -205,7 +205,7 @@ function createBoard () {
             if (from.x - to.x < 0 && from.y - to.y > 0) {
               let clearWay = true
               for (let i = 1; i < to.x - from.x; i++) {
-                if (board[from.y - i][from.x + i] !== '  ') {
+                if (boardstate[from.y - i][from.x + i] !== '  ') {
                   clearWay = false
                 }
               }
@@ -215,7 +215,7 @@ function createBoard () {
             if (from.x - to.x > 0 && from.y - to.y < 0) {
               let clearWay = true
               for (let i = 1; i < from.x - to.x; i++) {
-                if (board[from.y + i][from.x - i] !== '  ') {
+                if (boardstate[from.y + i][from.x - i] !== '  ') {
                   clearWay = false
                 }
               }
@@ -225,7 +225,7 @@ function createBoard () {
             if (from.x - to.x > 0 && from.y - to.y > 0) {
               let clearWay = true
               for (let i = 1; i < from.x - to.x; i++) {
-                if (board[from.y - i][from.x - i] !== '  ') {
+                if (boardstate[from.y - i][from.x - i] !== '  ') {
                   clearWay = false
                 }
               }
@@ -240,20 +240,20 @@ function createBoard () {
           }
 
           if (color === 'w' && allowedCastling[color][0] && to.x === 2 && to.y === 7) {
-            board[7][0] = '  '
-            board[7][3] = 'wr'
+            boardstate[7][0] = '  '
+            boardstate[7][3] = 'wr'
             legal = true
           } else if (color === 'w' && allowedCastling[color][1] && to.x === 6 && to.y === 7) {
-            board[7][7] = '  '
-            board[7][5] = 'wr'
+            boardstate[7][7] = '  '
+            boardstate[7][5] = 'wr'
             legal = true
           } else if (color === 'b' && allowedCastling[color][0] && to.x === 2 && to.y === 0) {
-            board[0][0] = '  '
-            board[0][3] = 'br'
+            boardstate[0][0] = '  '
+            boardstate[0][3] = 'br'
             legal = true
           } else if (color === 'b' && allowedCastling[color][1] && to.x === 6 && to.y === 0) {
-            board[0][7] = '  '
-            board[0][5] = 'br'
+            boardstate[0][7] = '  '
+            boardstate[0][5] = 'br'
             legal = true
           }
 
@@ -262,8 +262,8 @@ function createBoard () {
 
         if (legal) {
           // make the move
-          board[to.y][to.x] = board[from.y][from.x]
-          board[from.y][from.x] = '  '
+          boardstate[to.y][to.x] = boardstate[from.y][from.x]
+          boardstate[from.y][from.x] = '  '
           count++
           // translate the move into long algebraic chess notation
           let move = (piece !== 'p') ? piece.toUpperCase() : ''
@@ -283,9 +283,9 @@ function createBoard () {
     let blackKing = false
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
-        if (board[y][x] === 'wk') {
+        if (boardstate[y][x] === 'wk') {
           whiteKing = true
-        } else if (board[y][x] === 'bk') {
+        } else if (boardstate[y][x] === 'bk') {
           blackKing = true
         }
       }
@@ -299,10 +299,17 @@ function createBoard () {
     return undefined
   }
 
+  // for testing
+  function setBoard (newboardstate, newcount) {
+    boardstate = newboardstate
+    count = newcount
+  }
+
   return {
     getBoard,
     move,
-    winner
+    winner,
+    setBoard
   }
 }
 

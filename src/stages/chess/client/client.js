@@ -1,5 +1,3 @@
-/* globals fabric */
-
 /**
  * This represents the client side of stage 1.
  *

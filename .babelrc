@@ -1,3 +1,10 @@
 {
-  "plugins": ["transform-html-import-to-string"]
+  "plugins": ["transform-html-import-to-string"],
+  "env": {
+    "test": {
+      "presets": [["env", {
+        "modules": "commonjs"
+      }]]
+    }
+  }
 }
