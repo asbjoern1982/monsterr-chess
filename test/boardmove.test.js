@@ -22,6 +22,7 @@ describe('pawn moves', () => {
     expect(board.move('w', {x: 4, y: 6}, {x: 4, y: 7})).toBeUndefined() // backwards
     expect(board.move('w', {x: 4, y: 6}, {x: 3, y: 5})).toBeUndefined() // attack with no enemy
     expect(board.move('w', {x: 4, y: 6}, {x: 4, y: 5})).toBe('e2-e3') // normal
+    expect(board.move('w', {x: 4, y: 5}, {x: 4, y: 4})).toBeUndefined() // twice before black's turn
     board.move('b', {x: 4, y: 1}, {x: 4, y: 2}) // black moves one forward
     board.move('w', {x: 4, y: 5}, {x: 4, y: 4}) // one forward
     board.move('b', {x: 4, y: 2}, {x: 4, y: 3}) // black moves one forward
@@ -39,8 +40,13 @@ describe('pawn moves', () => {
     expect(board.move('w', {x: 4, y: 6}, {x: 4, y: 4})).toBe('e2-e4') // 2 step
     board.move('b', {x: 3, y: 1}, {x: 3, y: 2}) // black moves pawn on column d 1 forward
     expect(board.move('w', {x: 4, y: 4}, {x: 4, y: 2})).toBeUndefined() // 2nd 2 step!
+    board.move('w', {x: 4, y: 4}, {x: 4, y: 3}) // white moves 1 forward to block a black passent
     expect(board.move('b', {x: 3, y: 2}, {x: 3, y: 4})).toBeUndefined() // 2 step from row 6!
+    board.move('b', {x: 3, y: 2}, {x: 3, y: 3}) // whatever
+    board.move('w', {x: 4, y: 3}, {x: 4, y: 2}) // white moves 1 forward to block a black passent
+    expect(board.move('b', {x: 4, y: 1}, {x: 4, y: 3})).toBeUndefined() // 2 step from row 6!
     // TODO: only twostep if the tile inbetween is empty
+    console.log(JSON.stringify(board.getBoard()))
   })
 
   test('en passent', () => {
